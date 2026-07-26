@@ -1,5 +1,3 @@
-import os
-
 import pandas as pd
 import numpy as np
 
@@ -7,26 +5,31 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OrdinalEncoder
 from sklearn.neighbors import KNeighborsClassifier 
 from scipy.stats import zscore
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import accuracy_score, f1_score, classification_report, confusion_matrix, ConfusionMatrixDisplay
 import joblib
 
-def build_knn_model():
-    filename = "modelo_predictivo_knn.joblib"
-    knn_model = train_knn_model()
-    joblib.dump(knn_model, filename)
-    print(f"Modelo KNN guardado en: {os.getcwd()}\\{filename}")
+from src.credio.constants import N_FEATURES, BASE_DIR, MODEL_FILENAME, SCALER_FILENAME, DATASET_FILENAME
 
-# Nota: codificación de "credit_score"
+def build_save_knn_model_scaler():
+    [knn_model, scaler] = train_knn_model()
+
+    joblib.dump(knn_model, MODEL_FILENAME)
+    print(f"Modelo KNN guardado en: {BASE_DIR / MODEL_FILENAME}")
+
+    joblib.dump(scaler, SCALER_FILENAME)
+    print(f"Escalador guardado en: {BASE_DIR / SCALER_FILENAME}")
+
+# Nota: codificación de "credit_risk"
 #     {
-#         0: "Poor",
-#         1: "Standard",
-#         2: "Good",
+#         0: "low",
+#         1: "medium",
+#         2: "high",
 #     }
 
 
 
 def train_knn_model():
-    df  = pd.read_csv("./dataset/credit_score_train.csv")
+    df  = pd.read_csv(DATASET_FILENAME)
 
     selected_columns = [
         "age",   # Edad del cliente, relacionada con estabilidad financiera
@@ -50,7 +53,7 @@ def train_knn_model():
         "amount_invested_monthly",   # Monto que invierte mensualmente
         "payment_behaviour",  # Patrón de gasto y pago del cliente
         "monthly_balance", # Saldo promedio que le queda al final del mes
-        "credit_score"  # TARGET
+        "credit_risk"  # TARGET
     ]
 
     df_selected = df[selected_columns]
@@ -69,29 +72,39 @@ def train_knn_model():
     df_selected[cat_cols] = df_selected[cat_cols].fillna(df_selected[cat_cols].mode().iloc[0])
 
     ordinal_cols = ["credit_mix", "spend_level", "value_level"]
-    nominal_cols = [c for c in cat_cols if c not in ordinal_cols and c != "credit_score"]
-    df_selected["credit_mix"] = df_selected["credit_mix"].map(
-        {
+    nominal_cols = [c for c in cat_cols if c not in ordinal_cols and c != "credit_risk"]
+
+    ordinal_encoding_maps = {
+        "credit_mix": {
             'Good': 2,
             'Standard': 1,
             'Bad': 0
-        }
-    )
+        },
 
-    df_selected["spend_level"] = df_selected["spend_level"].map(
-        {
+        "spend_level": {
             'Low': 0,
             'High': 1
-        }
-    )
+        },
 
-    df_selected["value_level"] = df_selected["value_level"].map(
-        {
+        "value_level": {
             'Small': 0, 
             'Medium': 1,
             'Large': 2
+        },
+
+        "credit_risk" : {
+            0: "low",
+            1: "medium",
+            2: "high"
         }
-    )
+    }
+
+
+    df_selected["credit_mix"] = df_selected["credit_mix"].map(ordinal_encoding_maps["credit_mix"])
+
+    df_selected["spend_level"] = df_selected["spend_level"].map(ordinal_encoding_maps["spend_level"])
+
+    df_selected["value_level"] = df_selected["value_level"].map(ordinal_encoding_maps["value_level"])
 
     encoder = OrdinalEncoder()
     df_selected[nominal_cols] = encoder.fit_transform(df_selected[nominal_cols])
@@ -100,14 +113,32 @@ def train_knn_model():
     mask = (np.abs(z_) > 3).any(axis=1)
     df_cleaned = df_selected[~mask]
 
+    correlations_w_target = np.abs(df_selected.corr()["credit_risk"].drop("credit_risk")).sort_values(ascending=False)
+    
+    X_cols = correlations_w_target.head(N_FEATURES).index
+
     scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(df_cleaned.drop("credit_score", axis=1))
-    y = df_cleaned["credit_score"]
+    X_scaled = scaler.fit_transform(df_cleaned[X_cols])
+    y = df_cleaned["credit_risk"]
 
     X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2)
 
-    candidate_k = round(np.sqrt(len(y_train)))
-    optimal_k = candidate_k if candidate_k % 2 else candidate_k + 1 
+    candidate_upper_k = round(np.sqrt(len(y_train)))
+    upper_bound_k = candidate_upper_k if candidate_upper_k % 2 else candidate_upper_k + 1 
+
+    k_vals = range(1, upper_bound_k + 1, 2)
+    f1_s = []
+
+    for k in k_vals:
+        model = KNeighborsClassifier(k)
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        f1 = f1_score(y_test, y_pred, average="weighted")
+        print(f"k: {k} -- f1: {f1}")
+        f1_s.append(f1)
+
+    index_optimal_k = max(range(len(f1_s)), key=f1_s.__getitem__)
+    optimal_k = k_vals[index_optimal_k]
 
     knn_model = KNeighborsClassifier(n_neighbors=optimal_k)
 
@@ -115,13 +146,13 @@ def train_knn_model():
 
     y_pred = knn_model.predict(X_test)
 
-    print("accuracy: ", accuracy_score(y_test, y_pred))
-    print()
-    print("report: ", classification_report(y_test, y_pred))
+    print("report: \n", classification_report(y_test, y_pred))
 
     cm = confusion_matrix(y_test, y_pred)
 
-    print("cm: \n", cm)
+    labels = ["Clase 0", "Clase 1", "Clase 2"]
+    cm_df = pd.DataFrame(cm, index=[f"Real {l}" for l in labels], 
+                            columns=[f"Pred {l}" for l in labels])
+    print(cm_df)
     print()
-
-    return knn_model
+    return [knn_model, scaler]
