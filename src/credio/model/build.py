@@ -11,7 +11,7 @@ import joblib
 
 from src.credio.constants import N_FEATURES, BASE_DIR, MODEL_FILENAME, SCALER_FILENAME, DATASET_FILENAME, ENCODER_MAPS_JSON_FILENAME
 
-def train_save_knn_model_scaler_encoder(knn_model, scaler, encoding_maps):
+def save_knn_model_scaler_encoder(knn_model, scaler, encoding_maps):
     joblib.dump(knn_model, MODEL_FILENAME)
     print(f"Modelo KNN guardado en: {BASE_DIR / MODEL_FILENAME}")
 
@@ -157,5 +157,5 @@ def train_save_knn_model_scaler_encoder():
                             columns=[f"Pred {l}" for l in labels])
     print(cm_df)
     print()
-    train_save_knn_model_scaler_encoder(knn_model, scaler, ordinal_encoding_maps)
+    save_knn_model_scaler_encoder(knn_model, scaler, ordinal_encoding_maps)
     return [knn_model, scaler, ordinal_encoding_maps]
