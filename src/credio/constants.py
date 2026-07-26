@@ -5,5 +5,6 @@ BASE_DIR = Path(__file__)
 MODEL_FILENAME = "model/knn__predict_model.joblib"
 SCALER_FILENAME = "model/scaler.joblib"
 DATASET_FILENAME = "dataset/credit_risk_train.csv"
+ENCODER_MAPS_JSON_FILENAME = "dataset/encoder.json"
 
 N_FEATURES = 5

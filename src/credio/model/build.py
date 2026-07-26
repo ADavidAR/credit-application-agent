@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import json
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OrdinalEncoder
@@ -8,16 +9,17 @@ from scipy.stats import zscore
 from sklearn.metrics import accuracy_score, f1_score, classification_report, confusion_matrix, ConfusionMatrixDisplay
 import joblib
 
-from src.credio.constants import N_FEATURES, BASE_DIR, MODEL_FILENAME, SCALER_FILENAME, DATASET_FILENAME
+from src.credio.constants import N_FEATURES, BASE_DIR, MODEL_FILENAME, SCALER_FILENAME, DATASET_FILENAME, ENCODER_MAPS_JSON_FILENAME
 
-def build_save_knn_model_scaler():
-    [knn_model, scaler] = train_knn_model()
-
+def train_save_knn_model_scaler_encoder(knn_model, scaler, encoding_maps):
     joblib.dump(knn_model, MODEL_FILENAME)
     print(f"Modelo KNN guardado en: {BASE_DIR / MODEL_FILENAME}")
 
     joblib.dump(scaler, SCALER_FILENAME)
     print(f"Escalador guardado en: {BASE_DIR / SCALER_FILENAME}")
+
+    with open(ENCODER_MAPS_JSON_FILENAME, "w") as f:
+        json.dump(encoding_maps, f, ensure_ascii=False, indent=4)
 
 # Nota: codificación de "credit_risk"
 #     {
@@ -28,7 +30,7 @@ def build_save_knn_model_scaler():
 
 
 
-def train_knn_model():
+def train_save_knn_model_scaler_encoder():
     df  = pd.read_csv(DATASET_FILENAME)
 
     selected_columns = [
@@ -116,7 +118,7 @@ def train_knn_model():
     correlations_w_target = np.abs(df_selected.corr()["credit_risk"].drop("credit_risk")).sort_values(ascending=False)
     
     X_cols = correlations_w_target.head(N_FEATURES).index
-
+    print(X_cols)
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(df_cleaned[X_cols])
     y = df_cleaned["credit_risk"]
@@ -155,4 +157,5 @@ def train_knn_model():
                             columns=[f"Pred {l}" for l in labels])
     print(cm_df)
     print()
-    return [knn_model, scaler]
+    train_save_knn_model_scaler_encoder(knn_model, scaler, ordinal_encoding_maps)
+    return [knn_model, scaler, ordinal_encoding_maps]
