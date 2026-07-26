@@ -16,6 +16,15 @@ def build_knn_model():
     joblib.dump(knn_model, filename)
     print(f"Modelo KNN guardado en: {os.getcwd()}\\{filename}")
 
+# Nota: codificación de "credit_score"
+#     {
+#         0: "Poor",
+#         1: "Standard",
+#         2: "Good",
+#     }
+
+
+
 def train_knn_model():
     df  = pd.read_csv("./dataset/credit_score_train.csv")
 
@@ -113,5 +122,6 @@ def train_knn_model():
     cm = confusion_matrix(y_test, y_pred)
 
     print("cm: \n", cm)
+    print()
 
     return knn_model
