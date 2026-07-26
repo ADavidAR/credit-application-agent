@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "credio-agent"
+version = "0.1.0"
+description = "Sistema inteligente de evaluación de solicitudes de crédito"
+requires-python = ">=3.10"
+authors = [
+    { name = "Angel David Alvarado Reyes", email = "angeldaalvarado@gmail.com" }
+]
+
+dependencies = [
+    "fastapi>=0.110.0",
+    "scikit-learn>=1.4.0",
+    "uvicorn>=0.28.0",
+    "gradio>=4.20.0",
+    "langchain>=0.2.0",
+    "langchain-community>=0.2.0",
+    "pydantic>=2.6.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.scripts]
+start = "credio.main:main"
