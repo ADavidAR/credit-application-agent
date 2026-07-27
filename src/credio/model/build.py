@@ -79,7 +79,7 @@ def train_save_knn_model_scaler_encoder():
     ordinal_cols = ["credit_mix", "spend_level", "value_level"]
     nominal_cols = [c for c in cat_cols if c not in ordinal_cols and c != "credit_risk"]
 
-    ordinal_encoding_maps = {
+    encoding_maps = {
         "credit_mix": {
             'Good': 2,
             'Standard': 1,
@@ -96,17 +96,26 @@ def train_save_knn_model_scaler_encoder():
             'Medium': 1,
             'Large': 2
         }
+
+        
     }
 
 
-    df_selected["credit_mix"] = df_selected["credit_mix"].map(ordinal_encoding_maps["credit_mix"])
+    df_selected["credit_mix"] = df_selected["credit_mix"].map(encoding_maps["credit_mix"])
 
-    df_selected["spend_level"] = df_selected["spend_level"].map(ordinal_encoding_maps["spend_level"])
+    df_selected["spend_level"] = df_selected["spend_level"].map(encoding_maps["spend_level"])
 
-    df_selected["value_level"] = df_selected["value_level"].map(ordinal_encoding_maps["value_level"])
+    df_selected["value_level"] = df_selected["value_level"].map(encoding_maps["value_level"])
 
     encoder = OrdinalEncoder()
     df_selected[nominal_cols] = encoder.fit_transform(df_selected[nominal_cols])
+
+    col_idx = list(encoder.feature_names_in_).index("payment_of_min_amount")
+
+    categories_payment_of_min_amount = encoder.categories_[col_idx]
+    mapping_payment_of_min_amount = {cat: code for code, cat in enumerate(categories_payment_of_min_amount)}
+
+    encoding_maps["payment_of_min_amount"] = mapping_payment_of_min_amount
 
     z_ = zscore(df_selected[num_cols])
     mask = (np.abs(z_) > 3).any(axis=1)
@@ -167,5 +176,5 @@ def train_save_knn_model_scaler_encoder():
     with open(METRICS_JSON_FILENAME, "w") as f:
             json.dump(metrics_dict, f, ensure_ascii=False, indent=4)
     
-    save_knn_model_scaler_encoder(knn_model, scaler, ordinal_encoding_maps)
-    return [knn_model, scaler, ordinal_encoding_maps, metrics_dict]
+    save_knn_model_scaler_encoder(knn_model, scaler, encoding_maps)
+    return [knn_model, scaler, encoding_maps, metrics_dict]

@@ -13,4 +13,20 @@ CREDIT_SCORE_LABELS = {
             1: "medio",
             2: "alto"
         }
+
+
+FIELD_LABELS_ES = {
+    "credit_mix": "mezcla de crédito (Buena / Estándar / Mala)",
+    "interest_rate": "tasa de interés",
+    "payment_of_min_amount": "si paga el monto mínimo (Sí / No)",
+    "num_credit_inquiries": "número de consultas de crédito realizadas",
+    "delay_from_due_date": "días de atraso desde la fecha de vencimiento",
+}
+
 N_FEATURES = 5
+
+OLLAMA_BASE_URL = "http://localhost:11434"
+OLLAMA_MODEL = "llama3.1"
+OLLAMA_MODEL_TEMPERATURE = 0.2
+
+API_BASE_URL = "http://127.0.0.1:8000"

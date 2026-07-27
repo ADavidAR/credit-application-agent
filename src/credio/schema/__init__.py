@@ -1,1 +1,1 @@
-from .schemas import PredictionRequest
+from .schemas import PredictionRequest, CollectedData, RiskLevel

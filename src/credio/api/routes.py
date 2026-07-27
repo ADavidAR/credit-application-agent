@@ -37,9 +37,9 @@ app = FastAPI(
 def predict_credit_risk(request: PredictionRequest):
     try:
         input_data = [
-                request.credit_mix,
+                knn_service.encoder_maps["credit_mix"].get((request.credit_mix)),
                 request.interest_rate,
-                request.payment_of_min_amount,
+                knn_service.encoder_maps["payment_of_min_amount"].get(request.payment_of_min_amount),
                 request.num_credit_inquiries,
                 request.delay_from_due_date
         ]

@@ -1,11 +1,11 @@
 import gradio as gr
 
+from src.credio.services.chat_service import CreditRiskChatSession
+
+session = CreditRiskChatSession()
+
 def respond(message, history):
-    # Simple eco-bot logic
-    if "hola" in message.lower():
-        return "Holaa! Como te ayuden?"
-    
-    return f"Dijiste: '{message}'. todavía no soy tan inteligente como para responder apropiadamente"
+    return session.send(message)
 
 demo = gr.ChatInterface(
     fn=respond,
@@ -13,3 +13,6 @@ demo = gr.ChatInterface(
     description="Soy un agente evaluador de riesgo crediticio!",
     examples=["¿Que informacion tengo que enviarte?"],
 )
+
+if __name__ == "__main__":
+    demo.launch()
