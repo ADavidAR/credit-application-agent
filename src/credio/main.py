@@ -1,8 +1,4 @@
-from  src.credio.model.build import train_save_knn_model_scaler_encoder
-from src.credio.ui.interface import demo
-
+import  uvicorn
 
 if __name__ == "__main__":
-    train_save_knn_model_scaler_encoder()
-    #demo.launch()
-    
+    uvicorn.run("src.credio.api:app", host="127.0.0.1", port=8000, reload=True)

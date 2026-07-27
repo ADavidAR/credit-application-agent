@@ -7,11 +7,14 @@ from sklearn.preprocessing import StandardScaler, OrdinalEncoder
 from sklearn.neighbors import KNeighborsClassifier 
 from scipy.stats import zscore
 from sklearn.metrics import accuracy_score, f1_score, classification_report, confusion_matrix, ConfusionMatrixDisplay
+from pathlib import Path
 import joblib
 
-from src.credio.constants import N_FEATURES, BASE_DIR, MODEL_FILENAME, SCALER_FILENAME, DATASET_FILENAME, ENCODER_MAPS_JSON_FILENAME
+
+from src.credio.constants import N_FEATURES, BASE_DIR, MODEL_FILENAME, SCALER_FILENAME, DATASET_FILENAME, ENCODER_MAPS_JSON_FILENAME, METRICS_JSON_FILENAME
 
 def save_knn_model_scaler_encoder(knn_model, scaler, encoding_maps):
+    Path(MODEL_FILENAME).parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(knn_model, MODEL_FILENAME)
     print(f"Modelo KNN guardado en: {BASE_DIR / MODEL_FILENAME}")
 
@@ -92,12 +95,6 @@ def train_save_knn_model_scaler_encoder():
             'Small': 0, 
             'Medium': 1,
             'Large': 2
-        },
-
-        "credit_risk" : {
-            0: "low",
-            1: "medium",
-            2: "high"
         }
     }
 
@@ -118,7 +115,7 @@ def train_save_knn_model_scaler_encoder():
     correlations_w_target = np.abs(df_selected.corr()["credit_risk"].drop("credit_risk")).sort_values(ascending=False)
     
     X_cols = correlations_w_target.head(N_FEATURES).index
-    print(X_cols)
+    print("Columnas con mayor correlación con el target: \n      ", X_cols.tolist())
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(df_cleaned[X_cols])
     y = df_cleaned["credit_risk"]
@@ -152,10 +149,23 @@ def train_save_knn_model_scaler_encoder():
 
     cm = confusion_matrix(y_test, y_pred)
 
+    f1 = f1_score(y_test, y_pred, average="weighted")
+    ac = accuracy_score(y_test, y_pred)
+
+    metrics_dict = {
+        "k": optimal_k,
+        "f1_score": f1,
+        "accuracy_score": ac
+    }
+
     labels = ["Clase 0", "Clase 1", "Clase 2"]
     cm_df = pd.DataFrame(cm, index=[f"Real {l}" for l in labels], 
                             columns=[f"Pred {l}" for l in labels])
     print(cm_df)
     print()
+
+    with open(METRICS_JSON_FILENAME, "w") as f:
+            json.dump(metrics_dict, f, ensure_ascii=False, indent=4)
+    
     save_knn_model_scaler_encoder(knn_model, scaler, ordinal_encoding_maps)
-    return [knn_model, scaler, ordinal_encoding_maps]
+    return [knn_model, scaler, ordinal_encoding_maps, metrics_dict]

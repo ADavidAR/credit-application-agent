@@ -221,3 +221,4 @@ __marimo__/
 # extra
 .gradio
 modelo_predictivo_knn.joblib
+model/
