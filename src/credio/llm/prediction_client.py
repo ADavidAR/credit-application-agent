@@ -1,7 +1,7 @@
 import requests
 
 from src.credio.constants import API_BASE_URL
-from src.credio.schema import PredictionRequest, RiskLevel
+from src.credio.schemas import PredictionRequest, RiskLevel
 
 
 class NotConfiguredPredictionClient():

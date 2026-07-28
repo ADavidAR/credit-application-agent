@@ -5,10 +5,10 @@ from src.credio.llm.extractor import DataExtractor
 from src.credio.llm.llm_client import get_chat_llm
 from src.credio.llm.prediction_client import ApiPredictionClient
 from src.credio.llm.prompts import SYSTEM_PROMPT, RECOMMENDATION_PROMPT, RECOMMENDATION_SYSTEM_PROMPT
-from src.credio.schema import CollectedData
+from src.credio.schemas import CollectedData
 from src.credio.constants import FIELD_LABELS_ES
 
-class CreditRiskChatSession:
+class CreditRiskChatService:
     def __init__(self, prediction_client = None) -> None:
         self._llm = get_chat_llm()
         self._extractor = DataExtractor()

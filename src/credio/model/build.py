@@ -32,30 +32,23 @@ def save_knn_model_scaler_encoder(knn_model, scaler, encoding_maps):
 #     }
 
 
-
 def train_save_knn_model_scaler_encoder():
     df  = pd.read_csv(DATASET_FILENAME)
 
     selected_columns = [
-        "age",   # Edad del cliente, relacionada con estabilidad financiera
-        "occupation",  # Profesión, relacionadocon el nivel de ingresos y estabilidad laboral
         "annual_income",  # Ingreso anual bruto, indicador de capacidad de pago
         "monthly_inhand_salary",  # Salario neto mensual, mide liquidez real disponible
         "credit_history_age", # Antigüedad del historial crediticio en meses
         "total_emi_per_month",  # Cuotas mensuales fijas que ya paga el cliente
-        "num_bank_accounts",  # Número de cuentas bancarias que posee
-        "num_credit_card",   # Número de tarjetas de crédito que posee
         "interest_rate", # Tasa de interés promedio aplicada a sus créditos
         "num_of_loan",  # Número de préstamos activos
         "delay_from_due_date",  # Días promedio de retraso en pagos
         "num_of_delayed_payment",  # Número de pagos retrasados
-        "changed_credit_limit",  # Cambio porcentual en el límite de crédito otorgado
         "num_credit_inquiries",  # Número de consultas de crédito recientes
         "credit_mix",  # Diversidad y calidad de los tipos de crédito manejados
         "outstanding_debt", # Deuda pendiente total
         "credit_utilization_ratio",  # Porcentaje del crédito disponible que está usando
         "payment_of_min_amount",  # Si paga solo el monto mínimo requerido
-        "amount_invested_monthly",   # Monto que invierte mensualmente
         "payment_behaviour",  # Patrón de gasto y pago del cliente
         "monthly_balance", # Saldo promedio que le queda al final del mes
         "credit_risk"  # TARGET
@@ -96,8 +89,6 @@ def train_save_knn_model_scaler_encoder():
             'Medium': 1,
             'Large': 2
         }
-
-        
     }
 
 

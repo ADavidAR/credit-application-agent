@@ -1,11 +1,12 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 
-import json
 
 from src.credio.services.knn import KNNService
-from src.credio.constants import MODEL_FILENAME, SCALER_FILENAME, ENCODER_MAPS_JSON_FILENAME, CREDIT_SCORE_LABELS, METRICS_JSON_FILENAME
-from src.credio.schema import PredictionRequest
+from src.credio.services.db import DBService
+from src.credio.schemas import PredictionRequest
+from src.credio.constants import ( MODEL_FILENAME, SCALER_FILENAME, ENCODER_MAPS_JSON_FILENAME,
+                                    CREDIT_SCORE_LABELS, METRICS_JSON_FILENAME, DB_URL)
 
 knn_service = KNNService(
     MODEL_FILENAME, 
@@ -13,6 +14,8 @@ knn_service = KNNService(
     ENCODER_MAPS_JSON_FILENAME,
     METRICS_JSON_FILENAME
 )
+
+db_service = DBService(DB_URL)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -37,15 +40,28 @@ app = FastAPI(
 def predict_credit_risk(request: PredictionRequest):
     try:
         input_data = [
-                knn_service.encoder_maps["credit_mix"].get((request.credit_mix)),
+
+                request.monthly_inhand_salary,
+                request.credit_history_age,
+                request.total_emi_per_month,
                 request.interest_rate,
-                knn_service.encoder_maps["payment_of_min_amount"].get(request.payment_of_min_amount),
+                request.num_of_loan,
+                request.delay_from_due_date,
+                request.num_of_delayed_payment,
                 request.num_credit_inquiries,
-                request.delay_from_due_date
+                knn_service.encoder_maps["credit_mix"].get( request.credit_mix ),
+                request.outstanding_debt,
+                knn_service.encoder_maps["payment_of_min_amount"].get( request.payment_of_min_amount ),
+                request.credit_utilization_ratio,
+                request.payment_of_min_amount,
+                request.monthly_balance,
+                knn_service.encoder_maps["spend_level"].get( request.spend_level ),
+                knn_service.encoder_maps["value_level"].get( request.value_level )
         ]
         pred_class = knn_service.predict(input_data)
         label = CREDIT_SCORE_LABELS.get(pred_class, "Desconocido")
-        
+
+        db_service.insert_record(request, pred_class)
         return {
             "risk_level": label
         }

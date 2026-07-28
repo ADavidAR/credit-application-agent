@@ -1,8 +1,8 @@
 import gradio as gr
 
-from src.credio.services.chat_service import CreditRiskChatSession
+from credio.services.chat import CreditRiskChatService
 
-session = CreditRiskChatSession()
+session = CreditRiskChatService()
 
 def respond(message, history):
     return session.send(message)

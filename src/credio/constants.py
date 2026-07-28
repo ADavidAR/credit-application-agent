@@ -30,3 +30,5 @@ OLLAMA_MODEL = "llama3.1"
 OLLAMA_MODEL_TEMPERATURE = 0.2
 
 API_BASE_URL = "http://127.0.0.1:8000"
+
+DB_URL = "db/logs.db"
