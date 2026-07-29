@@ -6,12 +6,12 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OrdinalEncoder
 from sklearn.neighbors import KNeighborsClassifier 
 from scipy.stats import zscore
-from sklearn.metrics import accuracy_score, f1_score, classification_report, confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import accuracy_score, f1_score, classification_report, confusion_matrix
 from pathlib import Path
 import joblib
 
 
-from src.credio.constants import N_FEATURES, BASE_DIR, MODEL_FILENAME, SCALER_FILENAME, DATASET_FILENAME, ENCODER_MAPS_JSON_FILENAME, METRICS_JSON_FILENAME
+from src.credio.constants import N_IMPORTANT_FEATURES, BASE_DIR, MODEL_FILENAME, SCALER_FILENAME, DATASET_FILENAME, ENCODER_MAPS_JSON_FILENAME, METRICS_JSON_FILENAME
 
 def save_knn_model_scaler_encoder(knn_model, scaler, encoding_maps):
     Path(MODEL_FILENAME).parent.mkdir(parents=True, exist_ok=True)
@@ -114,10 +114,10 @@ def train_save_knn_model_scaler_encoder():
 
     correlations_w_target = np.abs(df_selected.corr()["credit_risk"].drop("credit_risk")).sort_values(ascending=False)
     
-    X_cols = correlations_w_target.head(N_FEATURES).index
-    print("Columnas con mayor correlación con el target: \n      ", X_cols.tolist())
+    most_important_features = correlations_w_target.head(N_IMPORTANT_FEATURES).index
+    print("Columnas con mayor correlación con el target: \n      ", most_important_features.tolist())
     scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(df_cleaned[X_cols])
+    X_scaled = scaler.fit_transform(df_cleaned.drop("credit_risk", axis=1))
     y = df_cleaned["credit_risk"]
 
     X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2)
@@ -165,7 +165,9 @@ def train_save_knn_model_scaler_encoder():
     print()
 
     with open(METRICS_JSON_FILENAME, "w") as f:
-            json.dump(metrics_dict, f, ensure_ascii=False, indent=4)
+        json.dump(metrics_dict, f, ensure_ascii=False, indent=4)
     
     save_knn_model_scaler_encoder(knn_model, scaler, encoding_maps)
     return [knn_model, scaler, encoding_maps, metrics_dict]
+
+train_save_knn_model_scaler_encoder()

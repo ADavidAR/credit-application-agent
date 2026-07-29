@@ -2,20 +2,19 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 
 
-from src.credio.services.knn import KNNService
-from src.credio.services.db import DBService
+from credio.services.prediction_models import DecisionTreeService
+from credio.services.log import LogService
 from src.credio.schemas import PredictionRequest
 from src.credio.constants import ( MODEL_FILENAME, SCALER_FILENAME, ENCODER_MAPS_JSON_FILENAME,
-                                    CREDIT_SCORE_LABELS, METRICS_JSON_FILENAME, DB_URL)
+                                    CREDIT_SCORE_LABELS, METRICS_JSON_FILENAME, DB_URL_TREE)
 
-knn_service = KNNService(
-    MODEL_FILENAME, 
-    SCALER_FILENAME, 
+knn_service = DecisionTreeService(
+    MODEL_FILENAME,
     ENCODER_MAPS_JSON_FILENAME,
     METRICS_JSON_FILENAME
 )
 
-db_service = DBService(DB_URL)
+log_service = LogService(DB_URL_TREE)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -58,10 +57,10 @@ def predict_credit_risk(request: PredictionRequest):
                 knn_service.encoder_maps["spend_level"].get( request.spend_level ),
                 knn_service.encoder_maps["value_level"].get( request.value_level )
         ]
-        pred_class = knn_service.predict(input_data)
-        label = CREDIT_SCORE_LABELS.get(pred_class, "Desconocido")
+        pred_risk = knn_service.predict(input_data)
+        label = CREDIT_SCORE_LABELS.get(pred_risk, "Desconocido")
 
-        db_service.insert_record(request, pred_class)
+        log_service.add_log(request, pred_risk)
         return {
             "risk_level": label
         }

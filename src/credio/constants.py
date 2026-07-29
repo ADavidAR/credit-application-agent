@@ -2,7 +2,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__)
 
-MODEL_FILENAME = "model/knn_predict_model.joblib"
+MODEL_FILENAME = "model/predict_model.joblib"
 SCALER_FILENAME = "model/scaler.joblib"
 DATASET_FILENAME = "dataset/credit_risk_train.csv"
 ENCODER_MAPS_JSON_FILENAME = "model/encoder.json"
@@ -23,7 +23,7 @@ FIELD_LABELS_ES = {
     "delay_from_due_date": "días de atraso desde la fecha de vencimiento",
 }
 
-N_FEATURES = 5
+N_IMPORTANT_FEATURES = 5
 
 OLLAMA_BASE_URL = "http://localhost:11434"
 OLLAMA_MODEL = "llama3.1"
@@ -31,4 +31,5 @@ OLLAMA_MODEL_TEMPERATURE = 0.2
 
 API_BASE_URL = "http://127.0.0.1:8000"
 
-DB_URL = "db/logs.db"
+DB_URL_KNN = "db/logs_knn.db"
+DB_URL_TREE = "db/logs_tree.db"
