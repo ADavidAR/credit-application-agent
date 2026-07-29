@@ -1,18 +1,18 @@
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from requests.exceptions import RequestException
 
-from src.credio.llm.extractor import DataExtractor
-from src.credio.llm.llm_client import get_chat_llm
-from src.credio.llm.prediction_client import ApiPredictionClient
-from src.credio.llm.prompts import SYSTEM_PROMPT, RECOMMENDATION_PROMPT, RECOMMENDATION_SYSTEM_PROMPT
-from src.credio.schemas import CollectedData
-from src.credio.constants import FIELD_LABELS_ES
+from credio.llm.extractor import DataExtractor
+from credio.llm.llm_client import get_chat_llm
+from credio.models.prediction_client import ApiPredictionClient, NotConfiguredPredictionClient
+from credio.llm.prompts import SYSTEM_PROMPT, RECOMMENDATION_PROMPT, RECOMMENDATION_SYSTEM_PROMPT
+from credio.schemas import CollectedData
+from credio.constants import FIELD_LABELS_ES
 
 class CreditRiskChatService:
-    def __init__(self, prediction_client = None) -> None:
+    def __init__(self, prediction_client: ApiPredictionClient = None) -> None:
         self._llm = get_chat_llm()
         self._extractor = DataExtractor()
-        self._prediction_client = prediction_client or ApiPredictionClient()
+        self._prediction_client = prediction_client or NotConfiguredPredictionClient()
         self._history = [SystemMessage(content=SYSTEM_PROMPT)]
         self._data = CollectedData()
 
@@ -54,7 +54,7 @@ class CreditRiskChatService:
         self._data = CollectedData(**current)
 
     def _missing_fields_notice(self, missing: list[str]) -> str:
-        labels = ", ".join(FIELD_LABELS_ES[field] for field in missing)
+        labels = "- ".join(FIELD_LABELS_ES[field] for field in missing)
         return f"Nota: aún necesito estos datos para poder evaluar el riesgo: {labels}."
 
     def _run_prediction(self) -> str:
@@ -73,6 +73,10 @@ class CreditRiskChatService:
 
         return self._generate_recommendation(risk_level)
 
+    def _reset(self):
+        self._history = [SystemMessage(content=SYSTEM_PROMPT)]
+        self._data = CollectedData()
+
     def _generate_recommendation(self, risk_level: str) -> str:
         conversation = [msg for msg in self._history if not isinstance(msg, SystemMessage)]
         prompt = RECOMMENDATION_PROMPT.format(risk_level=risk_level)
@@ -81,4 +85,7 @@ class CreditRiskChatService:
         response = self._llm.invoke(messages)
         recommendation_text = str(response.content)
         self._history.append(AIMessage(content=recommendation_text))
+
+        self._reset()
         return recommendation_text
+    

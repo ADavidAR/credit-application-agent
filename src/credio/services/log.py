@@ -1,8 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
 
-from src.credio.schemas import PredictionRequest
-from src.credio.dtos import Base, Log_Tree, Log_KNN
+from credio.schemas import PredictionRequest
+from credio.dtos import Base, Log_Tree, Log_KNN
 
 class LogService:
     def __init__(self, db_path: str ) -> None:

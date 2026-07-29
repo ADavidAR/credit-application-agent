@@ -2,7 +2,7 @@ import joblib
 from pathlib import Path
 import json
 
-from src.credio.models import train_save_knn_model_scaler_encoder, train_save_decision_tree_model
+from credio.models import train_save_knn_model_scaler_encoder, train_save_decision_tree_model
 
 
 class DecisionTreeService:

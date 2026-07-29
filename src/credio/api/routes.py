@@ -4,8 +4,8 @@ from fastapi import FastAPI, HTTPException
 
 from credio.services.prediction_models import DecisionTreeService
 from credio.services.log import LogService
-from src.credio.schemas import PredictionRequest
-from src.credio.constants import ( MODEL_FILENAME, SCALER_FILENAME, ENCODER_MAPS_JSON_FILENAME,
+from credio.schemas import PredictionRequest
+from credio.constants import ( MODEL_FILENAME, SCALER_FILENAME, ENCODER_MAPS_JSON_FILENAME,
                                     CREDIT_SCORE_LABELS, METRICS_JSON_FILENAME, DB_URL_TREE)
 
 knn_service = DecisionTreeService(

@@ -11,7 +11,7 @@ from pathlib import Path
 import joblib
 
 
-from src.credio.constants import N_IMPORTANT_FEATURES, BASE_DIR, MODEL_FILENAME, SCALER_FILENAME, DATASET_FILENAME, ENCODER_MAPS_JSON_FILENAME, METRICS_JSON_FILENAME
+from credio.constants import N_IMPORTANT_FEATURES, BASE_DIR, MODEL_FILENAME, SCALER_FILENAME, DATASET_FILENAME, ENCODER_MAPS_JSON_FILENAME, METRICS_JSON_FILENAME
 
 def save_tree_model_encoder(knn_model, encoding_maps):
     Path(MODEL_FILENAME).parent.mkdir(parents=True, exist_ok=True)

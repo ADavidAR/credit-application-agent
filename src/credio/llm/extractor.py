@@ -1,6 +1,6 @@
 from .llm_client import get_chat_llm
 from .prompts import EXTRACTION_PROMPT
-from src.credio.schemas import CollectedData
+from credio.schemas import CollectedData
 
 
 class DataExtractor:
