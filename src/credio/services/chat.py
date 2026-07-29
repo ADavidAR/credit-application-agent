@@ -3,7 +3,7 @@ from requests.exceptions import RequestException
 
 from credio.llm.extractor import DataExtractor
 from credio.llm.llm_client import get_chat_llm
-from credio.models.prediction_client import ApiPredictionClient, NotConfiguredPredictionClient
+from credio.services.prediction_client import ApiPredictionClient, NotConfiguredPredictionClient
 from credio.llm.prompts import SYSTEM_PROMPT, RECOMMENDATION_PROMPT, RECOMMENDATION_SYSTEM_PROMPT
 from credio.schemas import CollectedData
 from credio.constants import FIELD_LABELS_ES
