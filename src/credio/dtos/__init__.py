@@ -1,1 +1,1 @@
-from .dto import Log_Tree, Base, Log_KNN
+from .dto import Log_Tree, BaseTree, BaseKNN, Log_KNN

@@ -24,12 +24,14 @@ def save_knn_model_scaler_encoder(knn_model, scaler, encoding_maps):
     with open(ENCODER_MAPS_JSON_FILENAME, "w") as f:
         json.dump(encoding_maps, f, ensure_ascii=False, indent=4)
 
-# Nota: codificación de "credit_risk"
-#     {
-#         0: "low",
-#         1: "medium",
-#         2: "high",
-#     }
+"""
+    Nota: codificación de "credit_risk"
+        {
+            0: "low",
+            1: "medium",
+            2: "high",
+        }
+"""
 
 
 def train_save_knn_model_scaler_encoder():
@@ -43,7 +45,6 @@ def train_save_knn_model_scaler_encoder():
         "interest_rate", # Tasa de interés promedio aplicada a sus créditos
         "num_of_loan",  # Número de préstamos activos
         "delay_from_due_date",  # Días promedio de retraso en pagos
-        "num_of_delayed_payment",  # Número de pagos retrasados
         "num_credit_inquiries",  # Número de consultas de crédito recientes
         "credit_mix",  # Diversidad y calidad de los tipos de crédito manejados
         "outstanding_debt", # Deuda pendiente total
@@ -170,4 +171,3 @@ def train_save_knn_model_scaler_encoder():
     save_knn_model_scaler_encoder(knn_model, scaler, encoding_maps)
     return [knn_model, scaler, encoding_maps, metrics_dict]
 
-train_save_knn_model_scaler_encoder()

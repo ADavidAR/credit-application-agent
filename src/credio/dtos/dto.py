@@ -2,10 +2,13 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from datetime import datetime
 
-class Base(DeclarativeBase):
+class BaseTree(DeclarativeBase):
     pass
 
-class Log_Tree(Base):
+class BaseKNN(DeclarativeBase):
+    pass
+
+class Log_Tree(BaseTree):
     __tablename__ = "Logs"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -15,9 +18,9 @@ class Log_Tree(Base):
     credit_history_age: Mapped[int]
     delay_from_due_date: Mapped[int]
     credit_risk: Mapped[int]
-    predict_date: Mapped[datetime] = mapped_column(server_default=func.now())
+    prediction_date: Mapped[datetime] = mapped_column(server_default=func.now())
 
-class Log_KNN(Base):
+class Log_KNN(BaseKNN):
     __tablename__ = "Logs"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     credit_mix: Mapped[str]
@@ -26,4 +29,4 @@ class Log_KNN(Base):
     num_credit_inquiries: Mapped[int]
     delay_from_due_date: Mapped[int]
     credit_risk: Mapped[int]
-    predict_date: Mapped[datetime] = mapped_column(server_default=func.now())
+    prediction_date: Mapped[datetime] = mapped_column(server_default=func.now())

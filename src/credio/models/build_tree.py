@@ -20,15 +20,15 @@ def save_tree_model_encoder(knn_model, encoding_maps):
 
     with open(ENCODER_MAPS_JSON_FILENAME, "w") as f:
         json.dump(encoding_maps, f, ensure_ascii=False, indent=4)
+"""
+    Nota: codificación de "credit_risk"
+        {
+            0: "low",
+            1: "medium",
+            2: "high",
+        }
 
-# Nota: codificación de "credit_risk"
-#     {
-#         0: "low",
-#         1: "medium",
-#         2: "high",
-#     }
-
-
+"""
 def train_save_decision_tree_model():
     df  = pd.read_csv(DATASET_FILENAME)
 
@@ -40,7 +40,6 @@ def train_save_decision_tree_model():
         "interest_rate", # Tasa de interés promedio aplicada a sus créditos
         "num_of_loan",  # Número de préstamos activos
         "delay_from_due_date",  # Días promedio de retraso en pagos
-        "num_of_delayed_payment",  # Número de pagos retrasados
         "num_credit_inquiries",  # Número de consultas de crédito recientes
         "credit_mix",  # Diversidad y calidad de los tipos de crédito manejados
         "outstanding_debt", # Deuda pendiente total
@@ -109,7 +108,7 @@ def train_save_decision_tree_model():
     mask = (np.abs(z_) > 3).any(axis=1)
     df_cleaned = df_selected[~mask]
 
-    X = df_cleaned.drop("credit_risk", axis=1)
+    X = df_cleaned.drop("credit_risk", axis=1).to_numpy()
     y = df_cleaned["credit_risk"]
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
@@ -128,7 +127,7 @@ def train_save_decision_tree_model():
     index_optimal_depth = max(range(len(f1_s)), key=f1_s.__getitem__)
     optimal_depth = depths[index_optimal_depth]
 
-    tree_model = DecisionTreeClassifier(n_neighbors=optimal_depth, criterion="gini")
+    tree_model = DecisionTreeClassifier(max_depth=optimal_depth, criterion="gini")
 
     tree_model.fit(X_train, y_train)
 

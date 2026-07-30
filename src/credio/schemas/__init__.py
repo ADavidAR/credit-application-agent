@@ -1,1 +1,1 @@
-from .schemas import PredictionRequest, CollectedData, RiskLevel, ValueLevel, SpendLevel, CreditMix, PaymentOfMinAmount
+from .schemas import PredictionRequest, CollectedData, RiskLevel, ValueLevel, SpendLevel, CreditMix, PaymentOfMinAmount, ConfirmationIntent

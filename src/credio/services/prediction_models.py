@@ -16,7 +16,7 @@ class DecisionTreeService:
 
 
     def load_or_train(self) -> None:
-        if self.model_path.exists() and self.scaler_path.exists() and self.encoder_maps_path.exists() and self.metrics_path.exists():
+        if self.model_path.exists() and self.encoder_maps_path.exists() and self.metrics_path.exists():
             print(f"Cargando modelo existente desde: {self.model_path}")
             self.model = joblib.load(self.model_path)
 
@@ -28,13 +28,15 @@ class DecisionTreeService:
             with open(self.metrics_path, "r", encoding="utf-8") as f:
                 self.metrics = json.load(f)
         else:
-            print(f"No se encontró alguno de los archivos:\n   {self.model_path}\n   {self.scaler_path}\n   {self.encoder_maps_path}")
+            print(f"No se encontró alguno de los archivos:\n   {self.model_path}\n   {self.encoder_maps_path}\n   {self.metrics_path}")
             self.model, self.encoder_maps, self.metrics = train_save_decision_tree_model()
 
     def predict(self, features: list[float|int]) -> int:
         if self.model is None:
             raise RuntimeError("El modelo no ha sido cargado ni entrenado.")
+        print([features])
         prediction = self.model.predict([features])
+        print(prediction[0])
         return int(prediction[0])
 
 

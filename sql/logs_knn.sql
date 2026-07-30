@@ -8,5 +8,5 @@ CREATE TABLE Logs (
     num_credit_inquiries INTEGER NOT NULL,
     delay_from_due_date INTEGER NOT NULL,
     credit_risk INTEGER NOT NULL,
-    prediction_date TEXT DEFAULT CURRENT_TIMESTAMP
+    prediction_date TEXT DEFAULT (datetime('now', 'localtime'))
 )

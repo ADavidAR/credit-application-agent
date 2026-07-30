@@ -1,6 +1,6 @@
 from typing import Optional, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 CreditMix = Literal["Good", "Standard", "Bad"]
 PaymentOfMinAmount = Literal["Yes", "No"]
@@ -16,7 +16,6 @@ class PredictionRequest(BaseModel):
     interest_rate: float
     num_of_loan: int
     delay_from_due_date: int
-    num_of_delayed_payment: int
     num_credit_inquiries: int
     credit_mix: CreditMix
     outstanding_debt: float
@@ -35,7 +34,6 @@ class CollectedData(BaseModel):
     interest_rate: Optional[float] = None
     num_of_loan: Optional[int] = None
     delay_from_due_date: Optional[int] = None
-    num_of_delayed_payment: Optional[int] = None
     num_credit_inquiries: Optional[int] = None
     credit_mix: Optional[CreditMix] = None
     outstanding_debt: Optional[float] = None
@@ -57,4 +55,10 @@ class CollectedData(BaseModel):
         if not self.is_complete():
             raise ValueError("Faltan campos para construir PredictionRequest")
         return PredictionRequest(**self.model_dump())
-    
+
+
+class ConfirmationIntent(BaseModel):
+    confirmed: Optional[bool] = Field(
+        default=None,
+        description="True si el usuario confirma que los datos mostrados son correctos, False si indica que algo está mal o quiere corregir un dato, null si la respuesta no es un sí/no claro.",
+    )
