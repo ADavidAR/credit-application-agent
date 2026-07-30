@@ -1,0 +1,39 @@
+services:
+    api:
+        build:
+            context: .
+            dockerfile: docker/api.Dockerfile
+        ports:
+            - "8000:8000"
+        volumes:
+            - ./model:/credio/model
+            - ./db:/credio/db
+            - ./dataset:/credio/dataset
+        restart: unless-stopped
+
+    ui:
+        build:
+            context: .
+            dockerfile: docker/ui.Dockerfile
+        ports:
+            - "7860:7860"
+        environment:
+            - API_BASE_URL=http://api:8000
+            - OLLAMA_BASE_URL=http://ollama:11434
+        depends_on:
+            - api
+            - ollama
+        restart: unless-stopped
+
+    ollama:
+        build:
+            context: .
+            dockerfile: docker/ollama.Dockerfile
+        ports:
+            - "11434:11434"
+        volumes:
+            - ollama_data:/root/.ollama
+        restart: unless-stopped
+
+volumes:
+    ollama_data:
