@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent.parent.parent
@@ -35,11 +36,11 @@ FIELD_LABELS_ES = {
 
 N_IMPORTANT_FEATURES = 5
 
-OLLAMA_BASE_URL = "http://localhost:11434"
-OLLAMA_MODEL = "llama3.1"
-OLLAMA_MODEL_TEMPERATURE = 0.2
+OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.1")
+OLLAMA_MODEL_TEMPERATURE = float(os.environ.get("OLLAMA_MODEL_TEMPERATURE", "0.2"))
 
-API_BASE_URL = "http://127.0.0.1:8000"
+API_BASE_URL = os.environ.get("API_BASE_URL", "http://127.0.0.1:8000")
 
 DB_URL_KNN = BASE_DIR / "db/logs_knn.db"
 DB_URL_TREE = BASE_DIR / "db/logs_tree.db"
