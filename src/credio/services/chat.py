@@ -24,7 +24,21 @@ if not logger.handlers:
 
 
 class CreditRiskChatService:
+    """
+    Servicio del chat de evaluación de riesgo crediticio. Mantiene el
+    historial de la conversación y los datos recopilados, coordina la
+    extracción de campos, el paso de confirmación previo a predecir, la
+    llamada al "PredictionClient" y la redacción final de la recomendación.
+    """
+
     def __init__(self, prediction_client: ApiPredictionClient = None) -> None:
+        """
+        Constructor.
+
+        Args:
+            prediction_client: cliente usado para calcular el riesgo; si no
+                se indica, se usa "NotConfiguredPredictionClient".
+        """
         self._llm = get_chat_llm()
         self._extractor = DataExtractor()
         self._confirmation_extractor = ConfirmationExtractor()
@@ -38,6 +52,18 @@ class CreditRiskChatService:
         return self._data
 
     def send(self, user_message: str) -> str:
+        """
+        Procesa un mensaje del usuario y devuelve la respuesta del asistente.
+        Si hay una confirmación pendiente, la resuelve; si no, actualiza los
+        datos recopilados y, según falten o no campos, pide lo que falta o
+        pasa al paso de confirmación previo a la predicción.
+
+        Args:
+            user_message: mensaje escrito por el usuario.
+
+        Returns:
+            Texto de respuesta para mostrarle al usuario.
+        """
         if self._awaiting_confirmation:
             return self._handle_confirmation(user_message)
 
@@ -55,6 +81,13 @@ class CreditRiskChatService:
         return self._ask_confirmation()
 
     def _render_conversation(self) -> str:
+        """
+        Convierte el historial de mensajes en una transcripción de texto
+        plano ("Usuario: ..." / "Asistente: ...") para pasarla al extractor.
+
+        Returns:
+            Transcripción de la conversación acumulada hasta ahora.
+        """
         lines = []
         for msg in self._history:
             if isinstance(msg, HumanMessage):
@@ -64,6 +97,12 @@ class CreditRiskChatService:
         return "\n".join(lines)
 
     def _update_collected_data(self) -> None:
+        """
+        Vuelve a extraer los datos de toda la conversación y actualiza
+        "self._data" con los valores nuevos o modificados (permite que el
+        usuario corrija un dato ya dado). Registra en el log tanto lo
+        extraído como los cambios aplicados, para poder auditar el proceso.
+        """
         extracted = self._extractor.extract(self._render_conversation())
         current = self._data.model_dump()
         changes = {}
@@ -82,6 +121,15 @@ class CreditRiskChatService:
         return ", ".join(f"({FIELD_LABELS_ES[field]})" for field in missing)
 
     def _ask_confirmation(self) -> str:
+        """
+        Arma el mensaje de confirmación con el resumen de todos los datos
+        recopilados y marca la sesión como en espera de esa confirmación.
+        El texto se construye directo en código para que nunca pueda incluir 
+        una evaluación de riesgo inventada.
+
+        Returns:
+            Texto de confirmación para mostrarle al usuario.
+        """
         reply_text = (
             "Ya se recopilaron todos los datos necesarios. Este es el resumen:\n\n"
             f"{self._format_collected_data()}\n\n"
@@ -94,6 +142,17 @@ class CreditRiskChatService:
         return reply_text
 
     def _handle_confirmation(self, user_message: str) -> str:
+        """
+        Interpreta la respuesta del usuario a la solicitud de confirmación.
+        Si confirma, dispara la predicción; si la rechaza, le pide que
+        indique qué corregir; si la respuesta es ambigua, vuelve a preguntar.
+
+        Args:
+            user_message: respuesta del usuario a la confirmación pendiente.
+
+        Returns:
+            Texto de respuesta para mostrarle al usuario.
+        """
         self._history.append(HumanMessage(content=user_message))
         intent = self._confirmation_extractor.extract(user_message)
         logger.debug("confirmation_intent=%s user_message=%r", intent.confirmed, user_message)
@@ -116,6 +175,15 @@ class CreditRiskChatService:
         return "\n".join(f"- {FIELD_LABELS_ES[field]}: {value}" for field, value in self._data.model_dump().items())
 
     def _run_prediction(self) -> str:
+        """
+        Construye el "PredictionRequest" a partir de los datos ya
+        confirmados y lo envía al "PredictionClient". Si el cliente no está
+        configurado o la API no responde, devuelve un mensaje explicando
+        el problema.
+
+        Returns:
+            Texto de respuesta con la recomendación final, o un aviso de error.
+        """
         request = self._data.to_prediction_request()
         logger.info("prediction_request=%s", request.model_dump())
         try:
@@ -135,11 +203,23 @@ class CreditRiskChatService:
         return self._generate_recommendation(risk_level)
 
     def _reset(self) -> None:
+        """Reinicia historial y datos recopilados tras completar una evaluación."""
         self._history = [SystemMessage(content=SYSTEM_PROMPT)]
         self._data = CollectedData()
         self._awaiting_confirmation = False
 
     def _generate_recommendation(self, risk_level: str) -> str:
+        """
+        Redacta el mensaje final para el usuario a partir del nivel de
+        riesgo ya calculado por el modelo externo, y reinicia la sesión
+        para permitir una nueva evaluación.
+
+        Args:
+            risk_level: nivel de riesgo ("alto", "medio" o "bajo") devuelto por la API.
+
+        Returns:
+            Texto de la recomendación final.
+        """
         conversation = [msg for msg in self._history if not isinstance(msg, SystemMessage)]
         prompt = RECOMMENDATION_PROMPT.format(risk_level=risk_level, user_data=self._format_collected_data())
 

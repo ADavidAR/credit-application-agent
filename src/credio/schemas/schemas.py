@@ -9,6 +9,11 @@ SpendLevel = Literal["Low", "High"]
 ValueLevel = Literal["Small", "Medium", "Large"]
 
 class PredictionRequest(BaseModel):
+    """
+    Solicitud de evaluación de riesgo crediticio. Contiene los 15 campos
+    ya completos que necesita el modelo predictivo ("/predict").
+    """
+
     annual_income: float
     monthly_inhand_salary: float
     credit_history_age: int
@@ -27,6 +32,12 @@ class PredictionRequest(BaseModel):
 
 
 class CollectedData(BaseModel):
+    """
+    Versión parcial de "PredictionRequest" usada mientras dura la
+    conversación. Todos sus campos son opcionales, ya que se van llenando
+    de a poco a medida que el usuario los proporciona.
+    """
+
     annual_income: Optional[float] = None
     monthly_inhand_salary: Optional[float] = None
     credit_history_age: Optional[int] = None
@@ -52,12 +63,27 @@ class CollectedData(BaseModel):
         return not self.missing_fields()
 
     def to_prediction_request(self) -> PredictionRequest:
+        """
+        Convierte los datos ya recopilados en un "PredictionRequest" listo
+        para enviar a la API de predicción.
+
+        Returns:
+            PredictionRequest con los mismos valores ya recopilados.
+
+        Raises:
+            ValueError: si todavía falta algún campo por completar.
+        """
         if not self.is_complete():
             raise ValueError("Faltan campos para construir PredictionRequest")
         return PredictionRequest(**self.model_dump())
 
 
 class ConfirmationIntent(BaseModel):
+    """
+    Resultado de clasificar la respuesta del usuario ante el resumen de
+    datos que se le mostró para confirmar antes de predecir.
+    """
+
     confirmed: Optional[bool] = Field(
         default=None,
         description="True si el usuario confirma que los datos mostrados son correctos, False si indica que algo está mal o quiere corregir un dato, null si la respuesta no es un sí/no claro.",

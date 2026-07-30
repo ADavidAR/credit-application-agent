@@ -14,6 +14,15 @@ import joblib
 from credio.constants import N_IMPORTANT_FEATURES, BASE_DIR, MODEL_FILENAME, SCALER_FILENAME, DATASET_FILENAME, ENCODER_MAPS_JSON_FILENAME, METRICS_JSON_FILENAME
 
 def save_tree_model_encoder(knn_model, encoding_maps):
+    """
+    Persiste en disco los artefactos del árbol de decisión entrenado: el
+    modelo (".joblib") y los mapas de codificación de variables
+    categóricas (".json").
+
+    Args:
+        knn_model: DecisionTreeClassifier ya entrenado.
+        encoding_maps: mapas de codificación categórica a persistir.
+    """
     Path(MODEL_FILENAME).parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(knn_model, MODEL_FILENAME)
     print(f"Modelo de Arbol de decisión guardado en: {BASE_DIR / MODEL_FILENAME}")
@@ -30,6 +39,15 @@ def save_tree_model_encoder(knn_model, encoding_maps):
 
 """
 def train_save_decision_tree_model():
+    """
+    Entrena el árbol de decisión de riesgo crediticio de punta a punta:
+    carga el dataset, limpia valores nulos y outliers, codifica las
+    variables categóricas, busca la mejor profundidad por f1-score y
+    guarda el modelo, los mapas de codificación y las métricas resultantes.
+
+    Returns:
+        list con [árbol de decisión, mapas de codificación, métricas].
+    """
     df  = pd.read_csv(DATASET_FILENAME)
 
     selected_columns = [

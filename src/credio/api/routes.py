@@ -18,6 +18,14 @@ log_service = LogService(str(DB_URL_TREE))
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """
+    Ciclo de vida de la aplicación FastAPI. Carga (o entrena si no existe)
+    el modelo de riesgo crediticio al arrancar el servidor, y libera el
+    modelo de memoria al apagarlo.
+
+    Args:
+        app: instancia de FastAPI a la que se asocia este ciclo de vida.
+    """
     try:
         model_service.load_or_train()
     except Exception as e:
@@ -37,6 +45,18 @@ app = FastAPI(
 
 @app.post("/predict")
 def predict_credit_risk(request: PredictionRequest):
+    """
+    Calcula el nivel de riesgo crediticio de una solicitud. Codifica los
+    campos categóricos con los mapas del modelo, delega la predicción al
+    "DecisionTreeService", registra el resultado en el log correspondiente
+    y devuelve la etiqueta de riesgo ("bajo", "medio" o "alto").
+
+    Args:
+        request: datos de la solicitud de crédito.
+
+    Returns:
+        dict con la clave "risk_level" y la etiqueta de riesgo obtenida.
+    """
     try:
         input_data = [
                 request.annual_income,

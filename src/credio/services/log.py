@@ -5,15 +5,36 @@ from credio.schemas import PredictionRequest
 from credio.dtos import BaseTree, BaseKNN, Log_Tree, Log_KNN
 
 class LogService:
+    """
+    Servicio de bitácora de predicciones. Según el archivo de base de
+    datos indicado, usa el esquema de "Log_Tree" (para árbol de decisión) o de
+    "Log_KNN", ya que ambos modelos registran columnas distintas.
+    """
+
     def __init__(self, db_path: str ) -> None:
+        """
+        Constructor. Conecta el motor de SQLite y crea la tabla "Logs" con
+        el esquema que corresponda si todavía no existe.
+
+        Args:
+            db_path: ruta al archivo .db a usar (determina qué esquema aplicar).
+        """
         self.db_path = db_path
         self._engine = create_engine(f"sqlite:///{self.db_path}")
         if "logs_tree.db" in self.db_path:
             BaseTree.metadata.create_all(self._engine)
         else:
             BaseKNN.metadata.create_all(self._engine)
-            
+
     def add_log(self, data: PredictionRequest, credit_risk: int) -> None:
+        """
+        Registra en la base de datos correspondiente los datos de la
+        solicitud junto con el resultado de la predicción.
+
+        Args:
+            data: datos de la solicitud que se evaluó.
+            credit_risk: clase de riesgo predicha (0, 1 o 2).
+        """
         with Session(self._engine) as session:
             new_log = None
             if "logs_tree.db" in self.db_path:

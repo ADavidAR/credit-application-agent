@@ -14,6 +14,16 @@ import joblib
 from credio.constants import N_IMPORTANT_FEATURES, BASE_DIR, MODEL_FILENAME, SCALER_FILENAME, DATASET_FILENAME, ENCODER_MAPS_JSON_FILENAME, METRICS_JSON_FILENAME
 
 def save_knn_model_scaler_encoder(knn_model, scaler, encoding_maps):
+    """
+    Persiste en disco los artefactos del modelo KNN entrenado: el modelo
+    (".joblib"), el escalador (".joblib") y los mapas de codificación de
+    variables categóricas (".json").
+
+    Args:
+        knn_model: modelo KNeighborsClassifier ya entrenado.
+        scaler: StandardScaler ajustado usado para escalar las features.
+        encoding_maps: mapas de codificación categórica a persistir.
+    """
     Path(MODEL_FILENAME).parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(knn_model, MODEL_FILENAME)
     print(f"Modelo KNN guardado en: {BASE_DIR / MODEL_FILENAME}")
@@ -35,6 +45,16 @@ def save_knn_model_scaler_encoder(knn_model, scaler, encoding_maps):
 
 
 def train_save_knn_model_scaler_encoder():
+    """
+    Entrena el modelo KNN de riesgo crediticio de punta a punta: carga el
+    dataset, limpia valores nulos y outliers, codifica las variables
+    categóricas, escala las features, busca el mejor valor de k por f1-score
+    y guarda el modelo, el escalador, los mapas de codificación y las
+    métricas resultantes.
+
+    Returns:
+        list con [modelo KNN, escalador, mapas de codificación, métricas].
+    """
     df  = pd.read_csv(DATASET_FILENAME)
 
     selected_columns = [
