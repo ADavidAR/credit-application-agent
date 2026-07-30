@@ -104,11 +104,18 @@ Recibe un `PredictionRequest` con los 15 campos, codifica las variables categór
 
 Todas tienen valores por defecto que funcionan directamente tanto en local como en Docker; solo hace falta declararlas cuando su valor correcto depende del entorno (por eso `API_BASE_URL`/`OLLAMA_BASE_URL` sí están en `docker-compose.yml` y las demás no).
 
-## Cómo correrlo
+## Cómo ejecutarlo
+
+### Clonar el repositorio
+
+```bash
+git clone git@github.com:ADavidAR/credit-application-agent.git
+cd credit-application-agent
+```
 
 ### En local (sin Docker)
 
-Requiere [Ollama](https://ollama.com) corriendo con el modelo descargado (`ollama pull llama3.1`).
+Requiere [Ollama](https://ollama.com) en ejecución con el modelo descargado (`ollama pull llama3.1`).
 
 ```bash
 pip install -e ".[api]"
@@ -123,7 +130,7 @@ python -m credio.ui.main       # http://localhost:7860
 
 ### Con Docker
 
-Requiere Docker Desktop corriendo.
+Requiere Docker Desktop en ejecución.
 
 ```bash
 docker compose up --build
@@ -132,7 +139,7 @@ docker compose up --build
 Esto levanta 3 servicios: `api` (puerto 8000), `ui` (puerto 7860) y `ollama` (puerto 11434, descarga `llama3.1` automáticamente la primera vez que arranca). La UI se conecta a los otros dos por nombre de servicio (DNS interno de Docker Compose), no por `localhost`.
 
 - Los volúmenes `./model`, `./db` y `./dataset` se montan en el contenedor de la API para persistir el modelo entrenado y la bitácora entre reinicios.
-- Si Ollama ya está corriendo en la máquina local (no en Docker), se debe comentar el servicio `ollama` y cambiar `OLLAMA_BASE_URL` en `docker-compose.yml` a `http://host.docker.internal:11434`.
+- Si Ollama ya está en ejecución en la máquina local (no en Docker), se debe comentar el servicio `ollama` y cambiar `OLLAMA_BASE_URL` en `docker-compose.yml` a `http://host.docker.internal:11434`.
 
 ## Bitácora de predicciones
 

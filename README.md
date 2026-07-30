@@ -9,14 +9,16 @@ Credio combina un agente conversacional (LLM local vía Ollama) que recolecta lo
 ## Documentación
 
 - **[Manual de usuario](docs/MANUAL_USUARIO.md)**: cómo usar el chat, qué datos pide, cómo interpretar el resultado.
-- **[Documentación técnica](docs/DOCUMENTACION_TECNICA.md)**: arquitectura, estructura del proyecto, API, modelo, variables de entorno, cómo correrlo en local o con Docker.
+- **[Documentación técnica](docs/DOCUMENTACION_TECNICA.md)**: arquitectura, estructura del proyecto, API, modelo, variables de entorno, cómo ejecutarlo en local o con Docker.
 
 ## Inicio rápido
 
-Con [Docker](https://www.docker.com/) instalado y corriendo:
+Con [Docker](https://www.docker.com/) instalado y en ejecución:
 
 ```bash
+git clone git@github.com:ADavidAR/credit-application-agent.git
+cd credit-application-agent
 docker compose up --build
 ```
 
-Luego abrir `http://localhost:7860` para chatear con Credio. Ver [la documentación técnica](docs/DOCUMENTACION_TECNICA.md) para correrlo sin Docker.
+Luego abrir `http://localhost:7860` para chatear con Credio. Ver [la documentación técnica](docs/DOCUMENTACION_TECNICA.md) para ejecutarlo sin Docker.
