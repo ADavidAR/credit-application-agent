@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 
@@ -15,6 +16,32 @@ model_service = DecisionTreeService(
 )
 
 log_service = LogService(str(DB_URL_TREE))
+
+logger = logging.getLogger("credio.api")
+
+
+def _encode(field_name: str, value: str) -> int:
+    """
+    Codifica un valor categórico usando los mapas del modelo, validando
+    que el valor sea reconocido en vez de dejarlo pasar como null.
+
+    Args:
+        field_name: nombre del campo categórico (clave en `encoder_maps`).
+        value: valor recibido en la solicitud.
+
+    Returns:
+        Código entero correspondiente al valor.
+
+    Raises:
+        HTTPException: 422 si el valor no está en el mapa de codificación.
+    """
+    encoded = model_service.encoder_maps.get(field_name, {}).get(value)
+    if encoded is None:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Valor no reconocido para '{field_name}': '{value}'.",
+        )
+    return encoded
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -67,25 +94,30 @@ def predict_credit_risk(request: PredictionRequest):
                 request.num_of_loan,
                 request.delay_from_due_date,
                 request.num_credit_inquiries,
-                model_service.encoder_maps["credit_mix"].get( request.credit_mix ),
+                _encode("credit_mix", request.credit_mix),
                 request.outstanding_debt,
                 request.credit_utilization_ratio,
-                model_service.encoder_maps["payment_of_min_amount"].get( request.payment_of_min_amount ),
+                _encode("payment_of_min_amount", request.payment_of_min_amount),
                 request.monthly_balance,
-                model_service.encoder_maps["spend_level"].get( request.spend_level ),
-                model_service.encoder_maps["value_level"].get( request.value_level )
+                _encode("spend_level", request.spend_level),
+                _encode("value_level", request.value_level)
         ]
 
         pred_risk = model_service.predict(input_data)
         label = CREDIT_SCORE_LABELS.get(pred_risk, "Desconocido")
-
-        print(label)
-        log_service.add_log(request, pred_risk)
-        return {
-            "risk_level": label
-        }
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"No se pudo calcular el riesgo crediticio: {e}")
+
+    try:
+        log_service.add_log(request, pred_risk)
+    except Exception:
+        logger.exception("No se pudo guardar la predicción en la bitácora")
+
+    return {
+        "risk_level": label
+    }
 
 @app.get("/")
 def get_metrics():

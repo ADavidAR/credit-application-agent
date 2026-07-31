@@ -14,19 +14,19 @@ class PredictionRequest(BaseModel):
     ya completos que necesita el modelo predictivo ("/predict").
     """
 
-    annual_income: float
-    monthly_inhand_salary: float
-    credit_history_age: int
-    total_emi_per_month: float
-    interest_rate: float
-    num_of_loan: int
+    annual_income: float = Field(ge=0)
+    monthly_inhand_salary: float = Field(ge=0)
+    credit_history_age: int = Field(ge=0)
+    total_emi_per_month: float = Field(ge=0)
+    interest_rate: float = Field(ge=0)
+    num_of_loan: int = Field(ge=0)
     delay_from_due_date: int
-    num_credit_inquiries: int
+    num_credit_inquiries: int = Field(ge=0)
     credit_mix: CreditMix
-    outstanding_debt: float
-    credit_utilization_ratio: float
+    outstanding_debt: float = Field(ge=0)
+    credit_utilization_ratio: float = Field(ge=0)
     payment_of_min_amount: PaymentOfMinAmount
-    monthly_balance: float
+    monthly_balance: float = Field(ge=0)
     spend_level: SpendLevel
     value_level: ValueLevel
 
@@ -38,19 +38,19 @@ class CollectedData(BaseModel):
     de a poco a medida que el usuario los proporciona.
     """
 
-    annual_income: Optional[float] = None
-    monthly_inhand_salary: Optional[float] = None
-    credit_history_age: Optional[int] = None
-    total_emi_per_month: Optional[float] = None
-    interest_rate: Optional[float] = None
-    num_of_loan: Optional[int] = None
+    annual_income: Optional[float] = Field(default=None, ge=0)
+    monthly_inhand_salary: Optional[float] = Field(default=None, ge=0)
+    credit_history_age: Optional[int] = Field(default=None, ge=0)
+    total_emi_per_month: Optional[float] = Field(default=None, ge=0)
+    interest_rate: Optional[float] = Field(default=None, ge=0)
+    num_of_loan: Optional[int] = Field(default=None, ge=0)
     delay_from_due_date: Optional[int] = None
-    num_credit_inquiries: Optional[int] = None
+    num_credit_inquiries: Optional[int] = Field(default=None, ge=0)
     credit_mix: Optional[CreditMix] = None
-    outstanding_debt: Optional[float] = None
-    credit_utilization_ratio: Optional[float] = None
+    outstanding_debt: Optional[float] = Field(default=None, ge=0)
+    credit_utilization_ratio: Optional[float] = Field(default=None, ge=0)
     payment_of_min_amount: Optional[PaymentOfMinAmount] = None
-    monthly_balance: Optional[float] = None
+    monthly_balance: Optional[float] = Field(default=None, ge=0)
     spend_level: Optional[SpendLevel] = None
     value_level: Optional[ValueLevel] = None
 

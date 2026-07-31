@@ -84,6 +84,20 @@ Recibe un `PredictionRequest` con los 15 campos, codifica las variables categór
 
 **Importante**: el orden de las 15 features en `input_data` (routes.py) debe coincidir exactamente con el orden de columnas usado al entrenar (`models/build_tree.py`). Si se agrega o quita un campo del schema, hay que actualizar ambos lados y volver a entrenar el modelo (borrar `model/*.joblib`, `model/encoder.json`, `model/metrics.json` para forzar reentrenamiento en el próximo arranque).
 
+## Manejo de excepciones (`POST /predict`)
+
+El endpoint distingue tres tipos de fallo, cada uno con un tratamiento distinto:
+
+| Situación | Qué pasa | Código HTTP |
+|---|---|---|
+| Un campo tiene un tipo o valor fuera del `Literal` esperado (ej. `credit_mix: "Excellent"`) | Pydantic/FastAPI lo rechaza automáticamente antes de ejecutar el endpoint | `422` (automático) |
+| Un campo numérico recibe un valor negativo donde no corresponde (todos excepto `delay_from_due_date`, que sí puede ser negativo) | `Field(ge=0)` en `PredictionRequest`/`CollectedData` lo rechaza automáticamente | `422` (automático) |
+| Un valor es válido según el schema pero no está en `model/encoder.json` (desajuste entre el schema y lo que se entrenó) | `_encode()` lo detecta explícitamente y lanza un error con el campo y el valor problemático | `422` |
+| Falla el cálculo del riesgo por cualquier otro motivo (modelo no cargado, error interno de scikit-learn, etc.) | Se captura en el primer `try/except` y se responde con un mensaje descriptivo | `500` |
+| Falla el guardado en la bitácora (`db/logs_tree.db`) | Se captura en un `try/except` **separado**, solo del lado del guardado; el error se registra con `logger.exception(...)` pero no se propaga | No aplica, la respuesta sigue siendo `200` con el `risk_level` ya calculado |
+
+La razón de separar el guardado en la bitácora del resto: es un detalle de auditoría interno, no algo que dependa de quien llama al endpoint ni algo que el cliente pueda corregir. Que falle no debería impedir que el usuario reciba el resultado de una predicción que sí se calculó correctamente. El error queda disponible en los logs del contenedor (`docker compose logs -f api`) para que se pueda diagnosticar aparte.
+
 ## Modelo predictivo
 
 - Entrenado en `models/build_tree.py` sobre `dataset/credit_risk_train.csv`.
