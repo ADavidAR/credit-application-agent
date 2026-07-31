@@ -1,6 +1,8 @@
 import logging
 
+import httpx
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from ollama import ResponseError as OllamaResponseError
 from requests.exceptions import RequestException
 
 from credio.llm.extractor import DataExtractor, ConfirmationExtractor
@@ -64,21 +66,32 @@ class CreditRiskChatService:
         Returns:
             Texto de respuesta para mostrarle al usuario.
         """
-        if self._awaiting_confirmation:
-            return self._handle_confirmation(user_message)
+        try:
+            if self._awaiting_confirmation:
+                return self._handle_confirmation(user_message)
 
-        self._history.append(HumanMessage(content=user_message))
-        self._update_collected_data()
-        missing = self._data.missing_fields()
-        if missing:
-            history_without_last_message = self._history[:-1]
-            user_msg_w_missing = LAST_USER_MESSAGE.format(missing=self._missing_fields_notice(missing), user_message=user_message)
+            self._history.append(HumanMessage(content=user_message))
+            self._update_collected_data()
+            missing = self._data.missing_fields()
+            if missing:
+                history_without_last_message = self._history[:-1]
+                user_msg_w_missing = LAST_USER_MESSAGE.format(missing=self._missing_fields_notice(missing), user_message=user_message)
 
-            reply = self._llm.invoke([*history_without_last_message, HumanMessage(content=user_msg_w_missing)])
-            reply_text = str(reply.content)
-            self._history.append(AIMessage(content=reply_text))
-            return reply_text
-        return self._ask_confirmation()
+                reply = self._llm.invoke([*history_without_last_message, HumanMessage(content=user_msg_w_missing)])
+                reply_text = str(reply.content)
+                self._history.append(AIMessage(content=reply_text))
+                return reply_text
+            return self._ask_confirmation()
+        except httpx.ConnectError:
+            logger.exception("ollama_unreachable")
+            return (
+                "No pude conectarme con el modelo de lenguaje (Ollama). Verifica que esté corriendo e intenta de nuevo."
+            )
+        except OllamaResponseError as e:
+            logger.exception("ollama_model_error")
+            return (
+                f"El modelo de lenguaje configurado no está disponible en Ollama ({e}). Verifica que esté descargado (`ollama pull <modelo>`)."
+            )
 
     def _render_conversation(self) -> str:
         """

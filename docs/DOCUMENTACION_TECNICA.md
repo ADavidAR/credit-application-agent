@@ -98,6 +98,17 @@ El endpoint distingue tres tipos de fallo, cada uno con un tratamiento distinto:
 
 La razón de separar el guardado en la bitácora del resto: es un detalle de auditoría interno, no algo que dependa de quien llama al endpoint ni algo que el cliente pueda corregir. Que falle no debería impedir que el usuario reciba el resultado de una predicción que sí se calculó correctamente. El error queda disponible en los logs del contenedor (`docker compose logs -f api`) para que se pueda diagnosticar aparte.
 
+## Manejo de excepciones del chat (Ollama)
+
+`CreditRiskChatService.send()` envuelve toda la interacción con el LLM (extracción de datos, generación de respuestas, clasificación de confirmación y redacción de la recomendación) para cubrir dos fallos típicos que podrían presentarse con  Ollama:
+
+| Situación | Excepción real | Mensaje que recibe el usuario |
+|---|---|---|
+| Ollama no está corriendo / no es alcanzable | `httpx.ConnectError` | "No pude conectarme con el modelo de lenguaje (Ollama). Verifica que esté corriendo e intenta de nuevo." |
+| Ollama está corriendo pero el modelo (`OLLAMA_MODEL`, por defecto `llama3.1`) no está descargado | `ollama.ResponseError` (404 "model not found") | "El modelo de lenguaje configurado no está disponible en Ollama (...). Verifica que esté descargado (`ollama pull <modelo>`)." |
+
+En ambos casos se registra el traceback completo con `logger.exception(...)` para depuración, y la conversación puede continuar en el siguiente mensaje una vez resuelto el problema (no se pierde el estado ni los datos ya recopilados).
+
 ## Modelo predictivo
 
 - Entrenado en `models/build_tree.py` sobre `dataset/credit_risk_train.csv`.
